@@ -6,7 +6,9 @@ If your project's structure is similar to:
 - include/
 - Makefile
 
-which src/ folder contains all the source files, and include/ folder contains all the headers, then just fetch and use **Project_Template** as the Template
+> which src/ folder contains all the source files, and include/ folder contains all the headers
+
+just fetch and use **Project_Template** as the Template
 
 However, if your project looks like this:
 
