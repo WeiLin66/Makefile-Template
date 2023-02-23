@@ -11,8 +11,6 @@
 # CPPFLAGS: Extra flags to give to the C preprocessor
 # LDFLAGS: Extra flags to give to the linker
 
-TARGET = main
-
 DEBUG = 0 # make build DEBUG=1 to enable GDB
 
 CXX_STANDARD = c++20 # make build CXX_STANDARD=c++(version)
@@ -24,16 +22,19 @@ LDFLAGS = -lm
 # if-else condition
 ifeq ($(DEBUG), 1)
 CXXFLAGS += -g -O0
+TARGET = debug_code
 else
 CXXFLAGS += -O3 
+TARGET = release_code
 endif
 
 COMPILER_CALL = $(CXX) $(CXXFLAGS)
 
-OBJS = main.o my_lib.o
+SOURCES = $(wildcard *.cc)
+OBJS = $(patsubst %.cc, %.o, $(SOURCES)) # use patsubst becasue .o files aren't generated yet
 
 build: $(OBJS)
-	echo $(COMPILER_CALL)
+	echo $(SOURCES)
 	$(COMPILER_CALL) $(LDFLAGS) -o $(TARGET) $(OBJS)
 
 ##############
@@ -46,7 +47,7 @@ build: $(OBJS)
 	$(COMPILER_CALL) -c $< -o $@
 
 execute:
-	./main
+	./$(TARGET)
 
 clean:
-	rm -f *~ *.o main
+	rm -f *~ *.o $(TARGET)

@@ -12,15 +12,21 @@
 # LDFLAGS: Extra flags to give to the linker
 
 # make build DEBUG=1 to enable GDB
-DEBUG ?= 1
+DEBUG ?= 0
 
 # warning options
 ENABLE_WARNINGS ?= 1
 WARNING_AS_ERRORS ?= 1
 
-# directories
-INCLUDE_DIR = include
-SOURCE_DIR = src
+# header files directories
+DRIVER1_INCLUDE = Driver1/include
+DRIVER2_INCLUDE = Driver2/include
+
+# source files directories
+SOURCE_DIR1 = Driver1/src
+SOURCE_DIR2 = Driver2/src
+
+# build directories
 BUILD_DIR = build
 
 ifeq ($(ENABLE_WARNINGS), 1)
@@ -37,10 +43,9 @@ CXX_STANDARD ?= c++20 # make build CXX_STANDARD=c++(version)
 CXX = g++
 CC = gcc
 CXXFLAGS = $(CXX_WARNINGS) -std=$(CXX_STANDARD)
-CPPFLAGS = -I $(INCLUDE_DIR)
+CPPFLAGS = -I $(DRIVER1_INCLUDE) -I $(DRIVER2_INCLUDE) # include extra header files
 LDFLAGS = -lm
 
-# if-else condition
 ifeq ($(DEBUG), 1)
 CXXFLAGS += -g -O0
 TARGET = debug_code
@@ -51,16 +56,23 @@ endif
 
 COMPILER_CALL = $(CXX) $(CXXFLAGS) $(CPPFLAGS)
 
-SOURCES = $(wildcard $(SOURCE_DIR)/*.cc)
-OBJS = $(patsubst $(SOURCE_DIR)/%.cc, $(BUILD_DIR)/%.o, $(SOURCES)) # use patsubst becasue .o files aren't generated yet
+# source file targets from each folder
+DRIVER1_SOURCES = $(wildcard $(SOURCE_DIR1)/*.cc)
+DRIVER2_SOURCES = $(wildcard $(SOURCE_DIR2)/*.cc)
+PROJECT = $(wildcard *.cc)
+
+# replace .cc files with .o files
+OBJS1 = $(patsubst $(SOURCE_DIR1)/%.cc, $(BUILD_DIR)/%.o, $(DRIVER1_SOURCES))
+OBJS2 = $(patsubst $(SOURCE_DIR2)/%.cc, $(BUILD_DIR)/%.o, $(DRIVER2_SOURCES))
+OBJS3 = $(patsubst %.cc, $(BUILD_DIR)/%.o, $(PROJECT))
 
 ##############
 ##  TARGET 	##
 ##############
 all: create build
 
-build: $(OBJS)
-	$(COMPILER_CALL) $(OBJS) $(LDFLAGS) -o $(BUILD_DIR)/$(TARGET)
+build: $(OBJS1) $(OBJS2) $(OBJS3)
+	$(COMPILER_CALL) $(OBJS1) $(OBJS2) $(OBJS3) -o $(BUILD_DIR)/$(TARGET)
 
 create:
 	@mkdir -p $(BUILD_DIR)
@@ -80,7 +92,13 @@ clean:
 # $@: the file name of the target
 # $<: the name of the first dependency
 # $^: the names of all prerequisites
-$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cc
+$(BUILD_DIR)/%.o: $(SOURCE_DIR1)/%.cc
+	$(COMPILER_CALL) -c $< -o $@
+
+$(BUILD_DIR)/%.o: $(SOURCE_DIR2)/%.cc
+	$(COMPILER_CALL) -c $< -o $@
+
+$(BUILD_DIR)/%.o: %.cc
 	$(COMPILER_CALL) -c $< -o $@
 
 ##############
